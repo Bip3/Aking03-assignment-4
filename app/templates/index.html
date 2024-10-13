@@ -23,7 +23,7 @@
         button {
             padding: 10px 20px;
         }
-        img {
+        canvas {
             margin-top: 20px; /* Ensure space between results and the chart */
         }
     </style>
@@ -33,7 +33,10 @@
     <input type="text" id="query" placeholder="Enter your query here">
     <button onclick="search()">Search</button>
     <div id="results"></div>
-    <img id="similarityChart" src="" alt="Cosine Similarity Chart" style="display:none;">
+    <canvas id="similarityChart" width="400" height="200"></canvas>
+
+    <!-- Load Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <script>
         async function search() {
@@ -43,9 +46,9 @@
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                 body: new URLSearchParams({ 'query': query })
             });
-            const results = await response.json();
-            displayResults(results);
-            displayChart(); // Call to display the updated chart
+            const data = await response.json();
+            displayResults(data.top_docs);
+            displayChart(data.scores, data.labels); // Call to display the updated chart
         }
 
         function displayResults(results) {
@@ -61,10 +64,34 @@
             });
         }
 
-        function displayChart() {
-            const chartImg = document.getElementById('similarityChart');
-            chartImg.src = '/chart?' + new Date().getTime(); // Append timestamp to ensure the latest image is loaded
-            chartImg.style.display = 'block'; // Show the chart
+        function displayChart(scores, labels) {
+            const ctx = document.getElementById('similarityChart').getContext('2d');
+
+            // Destroy the existing chart if it exists to avoid overlap
+            if (window.chart) {
+                window.chart.destroy();
+            }
+
+            window.chart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Cosine Similarity',
+                        data: scores,
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
         }
     </script>
 </body>
