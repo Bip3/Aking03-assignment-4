@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LSA Document Search</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .result {
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        input[type="text"] {
+            width: 300px;
+            padding: 10px;
+            margin-right: 10px;
+        }
+        button {
+            padding: 10px 20px;
+        }
+        img {
+            margin-top: 20px; /* Ensure space between results and the chart */
+        }
+    </style>
+</head>
+<body>
+    <h1>Document Search with LSA</h1>
+    <input type="text" id="query" placeholder="Enter your query here">
+    <button onclick="search()">Search</button>
+    <div id="results"></div>
+    <img id="similarityChart" src="" alt="Cosine Similarity Chart" style="display:none;">
+
+    <script>
+        async function search() {
+            const query = document.getElementById('query').value;
+            const response = await fetch('/search', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: new URLSearchParams({ 'query': query })
+            });
+            const results = await response.json();
+            displayResults(results);
+            displayChart(); // Call to display the updated chart
+        }
+
+        function displayResults(results) {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '';  // Clear previous results
+            results.forEach(([doc, score]) => {
+                resultsDiv.innerHTML += `
+                    <div class="result">
+                        <p>${doc}</p>
+                        <p><strong>Cosine Similarity Score: ${score.toFixed(4)}</strong></p>
+                    </div>
+                `;
+            });
+        }
+
+        function displayChart() {
+            const chartImg = document.getElementById('similarityChart');
+            chartImg.src = '/chart?' + new Date().getTime(); // Append timestamp to ensure the latest image is loaded
+            chartImg.style.display = 'block'; // Show the chart
+        }
+    </script>
+</body>
+</html>
